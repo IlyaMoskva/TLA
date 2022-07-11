@@ -1,0 +1,5 @@
+---- MODULE MClift ----
+
+EXTENDS lift
+
+====
