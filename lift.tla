@@ -1,80 +1,80 @@
 -------------------------------- MODULE lift --------------------------------
 EXTENDS TLC, Integers
 
-CONSTANTS Storeys
+CONSTANTS Floors
 
-ASSUME Storeys \subseteq Int
+ASSUME Floors \subseteq Int
 
 VARIABLES 
-    \* Current location of the car
-    carLocation, 
-    \* Car’s potential movement states as “idle”, “going up” or “going down”, 
+    \* Current location of the cabin
+    cabinLocation, 
+    \* Cabin’s potential movement states as “idle”, “going up” or “going down”, 
     \* which we will represent numerically as 
     \* 0 for idle, 1 for going up and -1 for going down. 
-    carTravelStatus, 
-    \* Button on the Storey to call the lift
+    cabinTravelStatus, 
+    \* Button on the Floor to call the lift
     callRequest, 
-    \* Button inside of lift to go to another Storey
+    \* Button inside of lift to go to another Floor
     goRequest
 
-ConstStoreysRange == 1..2
+ConstFloorsRange == 1..2
 
 ECInit ==
-    /\ carLocation \in Storeys
-    /\ carTravelStatus = 0
-    /\ callRequest = [s \in Storeys |-> 0]
+    /\ cabinLocation \in Floors
+    /\ cabinTravelStatus = 0
+    /\ callRequest = [f \in Floors |-> 0]
     /\ goRequest = 0
 
-ECNextCall(s) ==
-    /\ callRequest[s] = 0
-    /\ callRequest' = [callRequest EXCEPT ![s] = 1]
-    /\ UNCHANGED << carLocation, carTravelStatus, goRequest >>
+ECNextCall(f) ==
+    /\ callRequest[f] = 0
+    /\ callRequest' = [callRequest EXCEPT ![f] = 1]
+    /\ UNCHANGED << cabinLocation, cabinTravelStatus, goRequest >>
 
-ECNextServiceCall(s) ==
-    /\ carLocation # s
-    /\ carTravelStatus = 0 
-    /\ carTravelStatus' = IF s > carLocation THEN 1 ELSE -1
-    /\ UNCHANGED << callRequest, goRequest, carLocation >>
+ECNextServiceCall(f) ==
+    /\ cabinLocation # f
+    /\ cabinTravelStatus = 0 
+    /\ cabinTravelStatus' = IF f > cabinLocation THEN 1 ELSE -1
+    /\ UNCHANGED << callRequest, goRequest, cabinLocation >>
 
-ECNextArriveCall(s) ==
-    /\ carLocation # s
-    /\ carTravelStatus # 0
-    /\ callRequest[s] = 1
-    /\ carLocation' = s
-    /\ carTravelStatus' = 0
-    /\ callRequest' = [callRequest EXCEPT ![s] = 0]
+ECNextArriveCall(f) ==
+    /\ cabinLocation # f
+    /\ cabinTravelStatus # 0
+    /\ callRequest[f] = 1
+    /\ cabinLocation' = f
+    /\ cabinTravelStatus' = 0
+    /\ callRequest' = [callRequest EXCEPT ![f] = 0]
     /\ UNCHANGED << goRequest >>
 
 ECNextGoRequest ==
     /\ goRequest = 0
     /\ goRequest' = 1
-    /\ UNCHANGED << carTravelStatus, carLocation, callRequest >>
+    /\ UNCHANGED << cabinTravelStatus, cabinLocation, callRequest >>
 
 ECNextServiceGoRequest ==
     /\ goRequest = 1
-    /\ carTravelStatus = 0
-    /\ carTravelStatus' = IF carLocation = 1 THEN 1 ELSE -1
-    /\ UNCHANGED << goRequest, carLocation, callRequest >>
+    /\ cabinTravelStatus = 0
+    /\ cabinTravelStatus' = IF cabinLocation = 1 THEN 1 ELSE -1
+    /\ UNCHANGED << goRequest, cabinLocation, callRequest >>
 
 
 ECNextArriveGoRequest ==
-    /\ carTravelStatus # 0
+    /\ cabinTravelStatus # 0
     /\ goRequest = 1
-    /\ carLocation' = IF carLocation = 1 THEN 2 ELSE 1
-    /\ carTravelStatus' = 0
+    /\ cabinLocation' = IF cabinLocation = 1 THEN 2 ELSE 1
+    /\ cabinTravelStatus' = 0
     /\ goRequest' = 0
     /\ UNCHANGED << callRequest >>
 
 ECNext ==
-    \/ \E s \in Storeys :
-        \/ ECNextCall(s)
-        \/ ECNextServiceCall(s)
-        \/ ECNextArriveCall(s)
+    \/ \E f \in Floors :
+        \/ ECNextCall(f)
+        \/ ECNextServiceCall(f)
+        \/ ECNextArriveCall(f)
     \/ ECNextGoRequest
     \/ ECNextServiceGoRequest
     \/ ECNextArriveGoRequest
 
-vars == << carLocation, carTravelStatus, callRequest, goRequest >>
+vars == << cabinLocation, cabinTravelStatus, callRequest, goRequest >>
 
 Spec == ECInit /\ [][ECNext]_vars    
 
@@ -82,9 +82,9 @@ Spec == ECInit /\ [][ECNext]_vars
 All of the things that should remain true in all states of our system.
 *)
 ECTypeOK ==
-    /\ carLocation \in Storeys
-    /\ carTravelStatus \in {-1, 0, 1}
-    /\ callRequest \in [Storeys -> {0, 1}]
+    /\ cabinLocation \in Floors
+    /\ cabinTravelStatus \in {-1, 0, 1}
+    /\ callRequest \in [Floors -> {0, 1}]
     /\ goRequest \in {0, 1}
 
 =============================================================================
